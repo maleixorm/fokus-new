@@ -8,6 +8,11 @@ const btnCancelar = document.querySelector('.app__form-footer__button--cancel');
 
 let tasks = [];
 
+const clearForm = () => {
+    textarea.value = '';
+    formTask.classList.add('hidden');
+}
+
 const taskIconSvg = `
 <svg class="app_section-task-icon-status" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="12" cy="12" r="12" fill="#FFF" />
@@ -47,8 +52,11 @@ formTask.addEventListener('submit', (evento) => {
     tasks.push(task);
     const taskItem = createTask(task);
     taskListContainer.appendChild(taskItem);
+    clearForm();
 });
 
 cancelFormTaskBtn.addEventListener('click', () => {
-    formTask.classList.add('hidden')
+    formTask.classList.add('hidden');
 });
+
+btnCancelar.addEventListener('click', clearForm);
