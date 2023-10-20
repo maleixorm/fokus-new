@@ -7,6 +7,9 @@ const cancelFormTaskBtn = document.querySelector('.app__form-footer__button--can
 const btnCancelar = document.querySelector('.app__form-footer__button--cancel');
 const localStorageTasks = localStorage.getItem('tasks');
 const taskActiveDescription = document.querySelector('.app__section-active-task-description');
+const btnDeletar = document.querySelector('.app__form-footer__button--delete');
+const btnDeletarConcluidas = document.querySelector('#btn-remover-concluidas');
+const btnDeletarTodas = document.querySelector('#btn-remover-todas');
 
 let tasks = localStorageTasks ? JSON.parse(localStorageTasks) : [];
 let taskSelected = null;
@@ -15,6 +18,10 @@ let taskEdition = null;
 let paragraphEdition = null;
 
 const taskSelect = (task, element) => {
+    if (task.concluida) {
+        return;
+    }
+
     document.querySelectorAll('.app__section-task-list-item-active').forEach(function (button) {
         button.classList.remove('app__section-task-list-item-active');
     });
@@ -83,9 +90,13 @@ function createTask(task) {
         taskSelect(task, li);
     }
     svgIcon.addEventListener('click', (event) => {
-        event.stopPropagation();
-        button.setAttribute('disabled', true);
-        li.classList.add('app__section-task-list-item-complete');
+        if (task == taskSelected) {
+            event.stopPropagation()
+            button.setAttribute('disabled', true)
+            li.classList.add('app__section-task-list-item-complete')
+            taskSelected.concluida = true
+            updateLocalStorage()
+        }
     });
     if (task.concluida) {
         button.setAttribute('disabled', true);
@@ -116,6 +127,15 @@ const updateLocalStorage = () => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
+const removeTasks = (somenteConcluidas) => {
+    const seletor = somenteConcluidas ? '.app__section-task-list-item-complete' : '.app__section-task-list-item'
+    document.querySelectorAll(seletor).forEach((element) => {
+        element.remove();
+    });
+    tasks = somenteConcluidas ? tasks.filter(t => !t.concluida) : []
+    updateLocalStorage()
+}
+
 formTask.addEventListener('submit', (evento) => {
     evento.preventDefault();
     if (taskEdition) {
@@ -132,4 +152,16 @@ formTask.addEventListener('submit', (evento) => {
     }
     updateLocalStorage();
     clearForm();
+});
+
+btnDeletarConcluidas.addEventListener('click', () => removeTasks(true));
+btnDeletarTodas.addEventListener('click', () => removeTasks(false));
+
+document.addEventListener('TarefaFinalizada', function (e) {
+    if (taskSelected) {
+        taskSelected.concluida = true;
+        itemTaskSelected.classList.add('app__section-task-list-item-complete');
+        itemTaskSelected.querySelector('button').setAttribute('disabled', true);
+        updateLocalStorage();
+    }
 });
