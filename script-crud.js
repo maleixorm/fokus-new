@@ -11,6 +11,8 @@ const taskActiveDescription = document.querySelector('.app__section-active-task-
 let tasks = localStorageTasks ? JSON.parse(localStorageTasks) : [];
 let taskSelected = null;
 let itemTaskSelected = null;
+let taskEdition = null;
+let paragraphEdition = null;
 
 const taskSelect = (task, element) => {
     document.querySelectorAll('.app__section-task-list-item-active').forEach(function (button) {
@@ -31,8 +33,22 @@ const taskSelect = (task, element) => {
 }
 
 const clearForm = () => {
+    taskEdition = null;
+    paragraphEdition = null;
     textarea.value = '';
     formTask.classList.add('hidden');
+}
+
+const selectTaskForEdition = (task, element) => {
+    if (taskEdition == task) {
+        clearForm();
+        return;
+    }
+    formLabel.textContent = 'Editando tarefa';
+    taskEdition = task;
+    paragraphEdition = element;
+    textarea.value = task.descricao;
+    formTask.classList.remove('hidden');
 }
 
 cancelFormTaskBtn.addEventListener('click', () => {
@@ -42,9 +58,12 @@ cancelFormTaskBtn.addEventListener('click', () => {
 btnCancelar.addEventListener('click', clearForm);
 
 const taskIconSvg = `
-<svg class="app_section-task-icon-status" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg class="app__section-task-icon-status" width="24" height="24" viewBox="0 0 24 24"
+    fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="12" cy="12" r="12" fill="#FFF" />
-    <path d = "M9 16.1719L19.5938 5.57812L21 6.98438L9 18.9844L3.42188 13.4062L4.82812 12L19 16.17192" fill="#01080E" />
+    <path
+        d="M9 16.1719L19.5938 5.57812L21 6.98438L9 18.9844L3.42188 13.4062L4.82812 12L9 16.1719Z"
+        fill="#01080E" />
 </svg>
 `;
 
@@ -57,6 +76,9 @@ function createTask(task) {
     paragraph.classList.add('app__section-task-list-item-description');
     paragraph.textContent = task.descricao;
     const button = document.createElement('button');
+    button.classList.add('app_button-edit');
+    const editIcon = document.createElement('img');
+    editIcon.setAttribute('src', '/imagens/edit.png');
     li.onclick = () => {
         taskSelect(task, li);
     }
@@ -71,6 +93,12 @@ function createTask(task) {
     }
     li.appendChild(svgIcon);
     li.appendChild(paragraph);
+    li.appendChild(button);
+    button.appendChild(editIcon);
+    button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        selectTaskForEdition(task, paragraph);
+    });
     return li;
 }
 
@@ -90,13 +118,18 @@ const updateLocalStorage = () => {
 
 formTask.addEventListener('submit', (evento) => {
     evento.preventDefault();
-    const task = {
-        descricao: textarea.value,
-        concluida: false
+    if (taskEdition) {
+        taskEdition.descricao = textarea.value;
+        paragraphEdition.textContent = textarea.value;
+    } else {
+        const task = {
+            descricao: textarea.value,
+            concluida: false
+        }
+        tasks.push(task);
+        const taskItem = createTask(task);
+        taskListContainer.appendChild(taskItem);
     }
-    tasks.push(task);
-    const taskItem = createTask(task);
-    taskListContainer.appendChild(taskItem);
     updateLocalStorage();
     clearForm();
 });
